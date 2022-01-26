@@ -1,0 +1,24 @@
+Jämför first come first served och Round Robin
+    
+    Task:
+    Primtalsfaktorisering
+    
+    Perfomance metrics:
+    x=tid, y=antalet trådar (Execution time)
+    x=CPU-usage percent, y=tid (CPU Utilization)
+    Dessa borde korrelera
+
+Task 1
+Skaffa VirtualBox?
+1 program till alla test
+Viktigaste är att det kör nog länge för att man ska kunna dra slutsatser
+sched.h
+Set the policy in the C-code
+All time keeping in C
+Skriva till en csv som sen python läser och plottar?
+
+Saker till koden:
+- deadline
+- scheduler
+- antal trådar samma som primtalet
+- 
