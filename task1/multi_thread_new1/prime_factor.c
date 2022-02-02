@@ -10,8 +10,20 @@
 #include <errno.h>
 #include "prime_factor.h"
 
-bool sched_manual = false;
-int num_to_factor = 0;
+/*
+ * Operating Systems UMU
+ * Spring 22
+ * Assignment 1
+ *
+ * File:         prime_factor.c
+ * Description:  A program that factors a given number for primes.
+ * Author:       Max Malmer
+ * CS username:  maxmal
+ * Date:         2022-02-02
+ * Input:        -
+ * Output:       The execution time in ms to STDOUT for each thread
+ * Limitations:  -
+ */
 
 int main(int argc, char **argv) {
     char option = 0;
@@ -19,6 +31,8 @@ int main(int argc, char **argv) {
     int nrthr = 1;
     char sched_type = 0;
     bool sched_specified = false;
+    bool sched_manual = false;
+    int num_to_factor = 0;
     
     static struct option long_options[] = {
         {"pthread", optional_argument, NULL, 'p'},
@@ -82,50 +96,46 @@ int main(int argc, char **argv) {
     int num_subthreads = nrthr - 1;
     num_to_factor = nrthr;
 
-    // while tills knapp trycks eller t.ex. 200 iterationer
     for (int i = 0; i < num_subthreads; i++) {
 
-        // Randomisera ett tal mellan 0 och num_to_factor
-        num_to_factor = num_to_factor - i;
+        pthread_data data;
+        data.sched_manual = sched_manual;
+        data.num_to_factor = num_to_factor;
+
+        srand(time(0));
+
+        data.num = (rand() % (num_to_factor + 1));
         
-        if (pthread_create(&threads[i + 1], NULL, &prime_factors, &num_to_factor) != 0) {
+        if (pthread_create(&threads[i + 1], NULL, &prime_factors, &data) != 0) {
             perror("pthread:");
         }
 
-        // check all threads if done from static global array
         msleep(5);
     }
-
-    /*for (int i = 0; i < num_subthreads; i++) {
-
-        num_to_factor = num_to_factor - i;
-        
-        if (pthread_join(threads[i + 1], NULL) != 0) {
-            perror("pthread:");
-        }
-    }*/
 
     return 0;
 }
 
 void print_usage(void) {
     fprintf(stderr, 
-            "ERROR use: prime_factor [-p start_prime] [-s scheduler]\n");
+            "ERROR use: prime_factor [-p num_threads] [-s scheduler]\n");
     exit(1);
 }
 
-void *prime_factors(void *prime) {
+void *prime_factors(void *data) {
     clock_t start_t, end_t;
     start_t = clock();
-    int n = *((int*)prime);
+    pthread_data input_data = *((pthread_data*)data);
+    
+    int n = input_data.num;
 
-    if (sched_manual) {
+    if (input_data.sched_manual) {
 
         struct sched_param param;
-        param.sched_priority = num_to_factor - n;
+        param.sched_priority = input_data.num_to_factor - n;
 
-        if (param.sched_priority > sched_get_priority_min(SCHED_RR)) {
-            param.sched_priority = sched_get_priority_min(SCHED_RR);
+        if (param.sched_priority > sched_get_priority_min(SCHED_OTHER)) {
+            param.sched_priority = sched_get_priority_min(SCHED_OTHER);
         }
 
         if (pthread_setschedparam(pthread_self(), SCHED_OTHER, &param) != 0) {
@@ -155,17 +165,17 @@ void *prime_factors(void *prime) {
     return 0;
 }
 
-int msleep(long msec) {
+int msleep(long milisec) {
     struct timespec ts;
     int res;
 
-    if (msec < 0) {
+    if (milisec < 0) {
         errno = EINVAL;
-        return -1;
+        perror("time:");
     }
 
-    ts.tv_sec = msec / 1000;
-    ts.tv_nsec = (msec % 1000) * 1000000;
+    ts.tv_sec = milisec / 1000;
+    ts.tv_nsec = (milisec % 1000) * 1000000;
 
     do {
         res = nanosleep(&ts, &ts);
