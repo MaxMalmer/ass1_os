@@ -113,6 +113,13 @@ int main(int argc, char **argv) {
         msleep(5);
     }
 
+    for (int i = 0; i < num_subthreads; i++) {
+
+        if (pthread_join(threads[i + 1], NULL) != 0) {
+            perror("pthread:");
+        } 
+    }
+
     return 0;
 }
 
