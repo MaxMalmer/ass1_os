@@ -33,6 +33,7 @@ int main(int argc, char **argv) {
     bool sched_specified = false;
     bool sched_manual = false;
     int num_to_factor = 0;
+    srand(time(0));
     
     static struct option long_options[] = {
         {"pthread", optional_argument, NULL, 'p'},
@@ -95,18 +96,16 @@ int main(int argc, char **argv) {
     threads[0] = pthread_self();
     int num_subthreads = nrthr - 1;
     num_to_factor = nrthr;
+    pthread_data *data = calloc(sizeof(pthread_data), num_subthreads);
 
     for (int i = 0; i < num_subthreads; i++) {
 
-        pthread_data data;
-        data.sched_manual = sched_manual;
-        data.num_to_factor = num_to_factor;
+        data[i].sched_manual = sched_manual;
+        data[i].num_to_factor = num_to_factor;
 
-        srand(time(0));
-
-        data.num = (rand() % (num_to_factor + 1));
+        data[i].num = (rand() % (num_to_factor + 1));
         
-        if (pthread_create(&threads[i + 1], NULL, &prime_factors, &data) != 0) {
+        if (pthread_create(&threads[i + 1], NULL, &prime_factors, &data[i]) != 0) {
             perror("pthread:");
         }
 
@@ -120,6 +119,7 @@ int main(int argc, char **argv) {
         } 
     }
 
+    free(data);
     return 0;
 }
 
@@ -131,10 +131,10 @@ void print_usage(void) {
 
 void *prime_factors(void *data) {
     clock_t start_t, end_t;
-    start_t = clock();
     pthread_data input_data = *((pthread_data*)data);
-    
     int n = input_data.num;
+    int j = 0;
+    bool is_prime = false;
 
     if (input_data.sched_manual) {
 
@@ -150,21 +150,26 @@ void *prime_factors(void *data) {
         }
     }
 
-    while (n % 2 == 0) {
-        // One factor 2 found
-        n = n / 2;
-    }
- 
-    for (int i = 3; i <= sqrt(n); i = i + 2) {
+    start_t = clock();
 
-        while (n % i == 0) {
-            // Factor found
-            n = n / i;
+    for (int i = 2; i <= n; i++) {
+        
+        if (n % i == 0) {
+            is_prime = true;
+
+            for (j = 2; j <= i / 2; j++) {
+                
+                if (i % j == 0) {
+                    is_prime = true;
+                    break;
+                }
+            }
+
+            if(is_prime) {
+                break;
+            }
         }
     }
-
-    //if (n > 2)
-        // Factor found
         
     end_t = clock();
     fprintf(stdout, "%ld\n", end_t - start_t);
