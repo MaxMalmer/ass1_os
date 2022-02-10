@@ -17,6 +17,7 @@
  * 
  * @{
  */
+#include <sys/time.h>
 
 #define _POSIX_C_SOURCE 200809L
 #define	_XOPEN_SOURCE
@@ -25,6 +26,8 @@ typedef struct {
     int num;
     bool sched_manual;
     int num_to_factor;
+    int tnum;
+    struct timeval starttime;
 } pthread_data;
 
 /**
