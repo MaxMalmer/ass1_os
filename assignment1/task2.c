@@ -5,6 +5,7 @@
 #include <math.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/time.h>
 #include <fcntl.h>
 
 char newline[] = "\n";
@@ -32,7 +33,7 @@ int main(){
 		//	printf("%s found, running tests...",filename);
 		}
 	}
-	printf("Done with file generation...\n\n");
+	//printf("Done with file generation...\n\n");
 	//Tests
 	int* rnumbers = malloc(sizeof(int)*MM);
 	int* snumbers = malloc(sizeof(int)*MM);
@@ -49,12 +50,17 @@ int main(){
 	}
 	
 	int sequential = 1;
-	FILE* fp;
+	//FILE* fp;
 	int ptr;
-
 	int readsize = 1000;
 	char linee[readsize];
+
 	if (sequential) {
+		struct timeval starttime;
+		gettimeofday(&(starttime), NULL);
+		struct timeval t0 = starttime;
+		struct timeval t1, dt;
+		
 		for (int j = 0; j < 1000; j++) {
 
 			for (int i = 0; i < 1000; i++) {
@@ -69,6 +75,10 @@ int main(){
 				close(ptr);
 			}
 		}
+		gettimeofday(&t1, NULL);
+		timersub(&t1, &t0, &dt);
+
+		fprintf(stdout, "%ld.%06ld\n", dt.tv_sec, dt.tv_usec);
 	} else {
 		for (int i = 0; i < MM; i++) {
 			int index = rnumbers[i];
@@ -82,6 +92,4 @@ int main(){
 			close(ptr);
 		}
 	}
-	
-
 }

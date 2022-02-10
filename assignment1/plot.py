@@ -10,7 +10,7 @@ PROGRAMNAME = "./prime_factor"
 OPTIONS = [["-p30", "-sr"]]    #Add more lists to run several times
 GRAPHX = "Thread-x"
 GRAPHY = "Time(ms)"
-PLOTNAME = "Prime_Factor_FIFO"
+PLOTNAME = "Prime_Factor_FIFO_1"
 FILENAME = PLOTNAME + ".png"
 
 #iteration param not used
@@ -43,4 +43,4 @@ def make_and_save_plot(data,  plotfilename):
 out, err = run_tests(10)
 print(out)
 print(err)
-make_and_save_plot([list(range(0,len(out))), out], FILENAME)
+make_and_save_plot([list(range(0,len(out))), range(0, out, 0.05)], FILENAME)
