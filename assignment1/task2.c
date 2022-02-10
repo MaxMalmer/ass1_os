@@ -11,6 +11,21 @@
 #include <errno.h>
 #include "task2.h"
 
+/*
+ * Operating Systems UMU
+ * Spring 22
+ * Assignment 1
+ *
+ * File:         task2.c
+ * Description:  A program that writes a lot of files and reads from them.
+ * Author:       Oscar Kamf, Max Malmer
+ * CS username:  oi17okf, maxmal
+ * Date:         2022-02-10
+ * Input:        -
+ * Output:       A long execution time.
+ * Limitations:  -
+ */
+
 char newline[] = "\n";
 #define MM 1000000
 
@@ -20,10 +35,8 @@ int main(){
 		char filename[20];
 		sprintf(filename, "junkfile%d", k);		
 
-		//File stuff
 		if (access(filename, F_OK) != 0) {
 			FILE* fp = fopen(filename, "w");
-			//printf("%s NOT found, generating one... please wait kindly\n\n", filename);
 			for (int i = 0; i < 10; i++) {
 				char str[20];
 				sprintf(str, "%d", i);
@@ -33,12 +46,8 @@ int main(){
 				fwrite(newline, 1, strlen(newline), fp);				
 			}
 			fclose(fp);
-		} else {
-		//	printf("%s found, running tests...",filename);
 		}
 	}
-	//printf("Done with file generation...\n\n");
-	//Tests
 	int sequential = 0;
 	int ptr;
 	int readsize = 1000;
@@ -85,9 +94,6 @@ int main(){
 			int index = rnumbers[i];
 			char str[20];
 			sprintf(str, "junkfile%d", index);
-			//fp = fopen(str, "r");
-			//fread(linee, 1, readsize, fp);
-			//fclose(fp);
 			ptr = open(str, O_RDONLY);
 			read(ptr, linee, readsize);
 			close(ptr);

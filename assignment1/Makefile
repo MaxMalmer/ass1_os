@@ -9,7 +9,10 @@ all:			prime_factor
 prime_factor: 		
 	$(CC) $(CFLAGS) -o prime_factor prime_factor.c
 
-run:			prime_factor
+task2: 		
+	$(CC) $(CFLAGS) -o prime_factor prime_factor.c
+
+run_prime:			prime_factor
 	sudo ./prime_factor -p 1000 -s f
 
 run_fifo:			prime_factor
@@ -29,3 +32,6 @@ helgrind:		prime_factor
 
 clean:
 	rm -f prime_factor *.o core
+
+clean_junkfiles:
+	rm -f *junkfile*

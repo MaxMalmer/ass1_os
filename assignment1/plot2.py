@@ -10,7 +10,7 @@ import collections
 PROGRAMNAME = "./task2"
 GRAPHX = "Read-x"
 GRAPHY = "Time(ms)"
-PLOTNAME = "Task_2_Plot_Threaded"
+PLOTNAME = "Task_2_Plot_BFQ"
 FILENAME = PLOTNAME + ".png"
 
 #iteration param not used
