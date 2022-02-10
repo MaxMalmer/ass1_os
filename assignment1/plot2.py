@@ -43,4 +43,4 @@ def make_and_save_plot(data,  plotfilename):
 out, err = run_tests(10)
 print(out)
 print(err)
-make_and_save_plot([range(0,600, 100), out], FILENAME)
+make_and_save_plot([list(range(0,len(out))), list(range(0,len(out)))], FILENAME)
