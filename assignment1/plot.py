@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+from mailbox import linesep
 import time
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -43,4 +44,4 @@ def make_and_save_plot(data,  plotfilename):
 out, err = run_tests(10)
 print(out)
 print(err)
-make_and_save_plot([list(range(0,len(out))), range(0, out, 0.05)], FILENAME)
+make_and_save_plot([list(range(0,len(out))), np.linespace(0, out)], FILENAME)

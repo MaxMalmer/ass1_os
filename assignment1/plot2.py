@@ -4,27 +4,28 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import subprocess
 import numpy as np
-
 import random
 import collections
 
 PROGRAMNAME = "./task2"
-GRAPHX = "Thread-x"
+GRAPHX = "Read-x"
 GRAPHY = "Time(ms)"
-PLOTNAME = "Task_2_plot_sync"
+PLOTNAME = "Task_2_Plot_Threaded"
 FILENAME = PLOTNAME + ".png"
 
 #iteration param not used
 def run_tests(iterations):
-    print("Running program: " + PROGRAMNAME + " with options ")
-    #command = ["/usr/bin/time", "-f", "%e", PROGRAMNAME]
-    command = [PROGRAMNAME]
-    pipe = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout, stderr = pipe.communicate()
-    out_lines = stdout.decode("utf-8").splitlines()
-    err_lines = stderr.decode("utf-8").splitlines()
+    out = list()
 
-    return out_lines, err_lines
+    for i in range(0, iterations):
+        start_time = time.time()
+        print("Running program: " + PROGRAMNAME + " with options ")
+        #command = ["/usr/bin/time", "-f", "%e", PROGRAMNAME]
+        command = [PROGRAMNAME]
+        pipe = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        pipe.wait()
+        out.append(time.time() - start_time)
+    return out
     
 
 
@@ -40,7 +41,7 @@ def make_and_save_plot(data,  plotfilename):
     plt.savefig(plotfilename)
 
 
-out, err = run_tests(10)
+out = run_tests(10)
 print(out)
-print(err)
-make_and_save_plot([range(0,600, 100), out], FILENAME)
+out.sort()
+make_and_save_plot([list(range(0,len(out))), out], FILENAME)
