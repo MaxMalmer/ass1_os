@@ -7,6 +7,7 @@
 #include <sched.h>
 #include <math.h>
 #include <time.h>
+#include <sys/time.h>
 #include <errno.h>
 #include "prime_factor.h"
 
@@ -76,16 +77,20 @@ int main(int argc, char **argv) {
         print_usage();
     }
 
+    struct sched_param sp = { .sched_priority = 50 };
+
     if (sched_type == 'f') {
 
-        if ((sched_setscheduler(0, SCHED_FIFO, NULL)) > 0) {
+        if ((sched_setscheduler(0, SCHED_FIFO, &sp)) < 0) {
             perror("scheduler:");
+            return 1;
         }
 
     } else if (sched_type == 'r') {
 
-        if ((sched_setscheduler(0, SCHED_RR, NULL)) > 0) {
+        if ((sched_setscheduler(0, SCHED_RR, &sp)) < 0) {
             perror("scheduler:");
+            return 1;
         }
 
     } else if (sched_type == 'm') {
@@ -95,21 +100,25 @@ int main(int argc, char **argv) {
     pthread_t threads[nrthr + 1];
     threads[0] = pthread_self();
     int num_subthreads = nrthr - 1;
-    num_to_factor = nrthr;
+    num_to_factor = nrthr*1000000;
     pthread_data *data = calloc(sizeof(pthread_data), num_subthreads);
 
     for (int i = 0; i < num_subthreads; i++) {
 
         data[i].sched_manual = sched_manual;
         data[i].num_to_factor = num_to_factor;
+	    data[i].tnum = i;
+        if (i < 3) {
+                data[i].num = 100000000;
 
-        data[i].num = (rand() % (num_to_factor + 1));
-        
+        } else {
+                data[i].num = (rand() % (num_to_factor + 1)) + num_to_factor/2;
+        }
+	    gettimeofday(&(data[i].starttime), NULL);
+
         if (pthread_create(&threads[i + 1], NULL, &prime_factors, &data[i]) != 0) {
             perror("pthread:");
         }
-
-        msleep(5);
     }
 
     for (int i = 0; i < num_subthreads; i++) {
@@ -130,14 +139,13 @@ void print_usage(void) {
 }
 
 void *prime_factors(void *data) {
-    clock_t start_t, end_t;
     pthread_data input_data = *((pthread_data*)data);
     int n = input_data.num;
     int j = 0;
     bool is_prime = false;
+    struct timeval t0 = input_data.starttime;
 
     if (input_data.sched_manual) {
-
         struct sched_param param;
         param.sched_priority = input_data.num_to_factor - n;
 
@@ -150,7 +158,7 @@ void *prime_factors(void *data) {
         }
     }
 
-    start_t = clock();
+    struct timeval t1, dt;
 
     for (int i = 2; i <= n; i++) {
         
@@ -161,18 +169,19 @@ void *prime_factors(void *data) {
                 
                 if (i % j == 0) {
                     is_prime = true;
-                    break;
                 }
             }
 
-            if(is_prime) {
-                break;
-            }
+           if(is_prime) {
+               break;
+           }
         }
     }
         
-    end_t = clock();
-    fprintf(stdout, "%ld\n", end_t - start_t);
+    gettimeofday(&t1, NULL);
+    timersub(&t1, &t0, &dt);
+
+    fprintf(stdout, "%ld.%06ld\n", dt.tv_sec, dt.tv_usec);
 
     return 0;
 }

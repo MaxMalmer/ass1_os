@@ -10,16 +10,16 @@ prime_factor:
 	$(CC) $(CFLAGS) -o prime_factor prime_factor.c
 
 run:			prime_factor
-	./prime_factor -p 1000 -s f
+	sudo ./prime_factor -p 1000 -s f
 
 run_fifo:			prime_factor
-	./prime_factor -p 1000 -s f
+	sudo ./prime_factor -p 1000 -s f
 
 run_robin:			prime_factor
-	./prime_factor -p 1000 -s r
+	sudo ./prime_factor -p 1000 -s r
 
 run_manual:			prime_factor
-	./prime_factor -p 1000 -s m
+	sudo ./prime_factor -p 1000 -s m
 
 valgrind: 		prime_factor
 	valgrind --leak-check=full --show-reachable=yes --track-origins=yes ./prime_factor -p 1000 -s f
