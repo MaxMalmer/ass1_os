@@ -27,6 +27,8 @@ static int variable = 0;
 static int single = 0;
 static char valueptr;
 
+static DEFINE_MUTEX(lock);
+
 struct data {
 	char key;
 	int data;
@@ -36,6 +38,8 @@ struct data {
 static struct data* head = NULL;
 
 static ssize_t variable_show(struct kobject *kobj, struct kobj_attribute *attr, char *buf) { 
+	mutex_lock(&lock);
+
 	if (!single) {
 
 		char tempbuffer[50];
@@ -46,6 +50,7 @@ static ssize_t variable_show(struct kobject *kobj, struct kobj_attribute *attr, 
 			strcat(buf, tempbuffer); 
 			temp = temp->next;
 		}
+		mutex_unlock(&lock);
 		return strlen(buf);
 	} else {
 		struct data* temp;
@@ -53,11 +58,13 @@ static ssize_t variable_show(struct kobject *kobj, struct kobj_attribute *attr, 
 		while(temp != NULL) {
 			if (temp->key == valueptr) {
 				sprintf(buf, "%d\n", temp->data);
+				mutex_unlock(&lock);
 				return strlen(buf);
 			}
 			temp = temp->next;
 		}
 		sprintf(buf, "NO DATA FOR %c STORED. PLEASE STOP HARASSING ME\n", valueptr);
+		mutex_unlock(&lock);
 		return strlen(buf);
 	}
 } 
@@ -66,10 +73,14 @@ static ssize_t variable_store(struct kobject *kobj, struct kobj_attribute *attr,
 	char key;
 	int value;
 	struct data* temp;
+	mutex_lock(&lock);
+
 	switch (buf[0]) {
+
 		case 'I':
 			key = buf[2];
 			sscanf(buf + 4, "%d", &value);
+
 			if (head == NULL) {
 				head = kmalloc(sizeof(struct data), 0);
 				head->key = key;
@@ -78,13 +89,17 @@ static ssize_t variable_store(struct kobject *kobj, struct kobj_attribute *attr,
 				head->data = value;	
 			} else {
 				temp = head;
+
 				while (temp->next != NULL) {
+
 					if (temp->key == key) {
 						temp->data = value;
+						mutex_unlock(&lock);
 						return count;	
 					}
 					temp = temp->next;
 				}
+				
 				if (temp->key == key) {
 					temp->data = value;
 				} else {
@@ -107,7 +122,8 @@ static ssize_t variable_store(struct kobject *kobj, struct kobj_attribute *attr,
 			pr_info("uh ohhhh\n");
 			break;
 	}
-    sscanf(buf + 1, "%du", &variable); 
+    sscanf(buf + 1, "%du", &variable);
+	mutex_unlock(&lock); 
     return count; 
 } 
  
