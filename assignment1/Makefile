@@ -13,16 +13,16 @@ task2:
 	$(CC) $(CFLAGS) -o prime_factor prime_factor.c
 
 run_prime:			prime_factor
-	sudo ./prime_factor -p 1000 -s f
+	sudo -S ./prime_factor -p 500 -s f
 
 run_fifo:			prime_factor
-	sudo ./prime_factor -p 1000 -s f
+	sudo ./prime_factor -p 500 -s f
 
 run_robin:			prime_factor
-	sudo ./prime_factor -p 1000 -s r
+	sudo ./prime_factor -p 500 -s r
 
 run_manual:			prime_factor
-	sudo ./prime_factor -p 1000 -s m
+	sudo ./prime_factor -p 500 -s m
 
 valgrind: 		prime_factor
 	valgrind --leak-check=full --show-reachable=yes --track-origins=yes ./prime_factor -p 1000 -s f

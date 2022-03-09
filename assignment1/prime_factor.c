@@ -26,7 +26,11 @@
  * Limitations:  -
  */
 
+struct timeval t0;
+
 int main(int argc, char **argv) {
+    
+
     char option = 0;
     int option_index = 0;
     int nrthr = 1;
@@ -103,6 +107,8 @@ int main(int argc, char **argv) {
     num_to_factor = nrthr*1000000;
     pthread_data *data = calloc(sizeof(pthread_data), num_subthreads);
 
+    gettimeofday(&t0, NULL);
+
     for (int i = 0; i < num_subthreads; i++) {
 
         data[i].sched_manual = sched_manual;
@@ -115,6 +121,7 @@ int main(int argc, char **argv) {
                 data[i].num = (rand() % (num_to_factor + 1)) + num_to_factor/2;
         }
 	    gettimeofday(&(data[i].starttime), NULL);
+        //t0 = data[i].starttime;
 
         if (pthread_create(&threads[i + 1], NULL, &prime_factors, &data[i]) != 0) {
             perror("pthread:");
@@ -125,8 +132,15 @@ int main(int argc, char **argv) {
 
         if (pthread_join(threads[i + 1], NULL) != 0) {
             perror("pthread:");
-        } 
+        }
     }
+
+    struct timeval t1, dt;
+    gettimeofday(&t1, NULL);
+    timersub(&t1, &t0, &dt);
+    double throughput = (double)num_subthreads / (dt.tv_sec);
+    fprintf(stdout, "%lf", throughput);
+    //fprintf(stdout, "%d", num_subthreads);
 
     free(data);
     return 0;
@@ -143,7 +157,10 @@ void *prime_factors(void *data) {
     int n = input_data.num;
     int j = 0;
     bool is_prime = false;
-    struct timeval t0 = input_data.starttime;
+    //struct timeval t1, dt;
+    //gettimeofday(&t1, NULL);
+    //timersub(&t1, &t0, &dt);
+    //fprintf(stdout, "%ld.%06ld\n", dt.tv_sec, dt.tv_usec);
 
     if (input_data.sched_manual) {
         struct sched_param param;
@@ -157,8 +174,6 @@ void *prime_factors(void *data) {
             perror("pthread_setscheduler:");
         }
     }
-
-    struct timeval t1, dt;
 
     for (int i = 2; i <= n; i++) {
         
@@ -177,11 +192,6 @@ void *prime_factors(void *data) {
            }
         }
     }
-        
-    gettimeofday(&t1, NULL);
-    timersub(&t1, &t0, &dt);
-
-    fprintf(stdout, "%ld.%06ld\n", dt.tv_sec, dt.tv_usec);
 
     return 0;
 }
