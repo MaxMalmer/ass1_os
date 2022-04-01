@@ -25,6 +25,8 @@
  */
 void *read_function(void *placeholder);
 
+void print_usage(void);
+
 #endif /* TASK2_H */
 
 /**
