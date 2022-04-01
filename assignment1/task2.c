@@ -9,6 +9,7 @@
 #include <fcntl.h>
 #include <pthread.h>
 #include <errno.h>
+#include <getopt.h>
 #include "task2.h"
 
 /*
@@ -27,9 +28,44 @@
  */
 
 char newline[] = "\n";
+int type_specified = O_RDONLY;
+struct timeval t0;
 #define MM 1000000
 
-int main(){
+int main(int argc, char **argv) {
+	char option = 0;
+    int option_index = 0;
+	int read_type = 0;
+	srand(0);
+
+	static struct option long_options[] = {
+        {"pthread", optional_argument, NULL, 'r'},
+        {NULL, 0, NULL, 0}
+    };
+
+    while ((option = getopt_long(argc, argv, "r:", 
+                                long_options, &option_index)) != -1) {
+
+        if (option != 0) {
+
+            if (option == 'r') {
+
+                if (sscanf(optarg,"%d", &read_type) == EOF) {
+                    print_usage();
+                }
+            }
+        } else {
+            print_usage();
+        }
+    }
+
+	if (read_type == 0) {
+		type_specified = O_RDONLY;
+	} else if (read_type == 1) {
+		type_specified = O_SYNC;
+	} else if (read_type == 2) {
+		type_specified = __O_DIRECT;
+	}
 
 	for (int k = 0; k < 10000; k++) {
 		char filename[20];
@@ -52,13 +88,13 @@ int main(){
 	int ptr;
 	int readsize = 1000;
 	char linee[readsize];
+	int nrthr = 100;
+	int num_subthreads = nrthr - 1;
 
 	if (!sequential) {
-
-		int nrthr = 100;
 		pthread_t threads[nrthr + 1];
 		threads[0] = pthread_self();
-		int num_subthreads = nrthr - 1;
+		gettimeofday(&t0, NULL);
 
 		for (int i = 0; i < num_subthreads; i++) {
 
@@ -78,7 +114,6 @@ int main(){
 
 		int* rnumbers = malloc(sizeof(int)*MM);
 		int* snumbers = malloc(sizeof(int)*MM);
-		srandom(47);
 
 		for (int i = 0; i < MM; i++) {
 			double r = (((double) rand()) / ((double)RAND_MAX));
@@ -94,18 +129,29 @@ int main(){
 			int index = rnumbers[i];
 			char str[20];
 			sprintf(str, "junkfile%d", index);
-			ptr = open(str, O_RDONLY);
+			ptr = open(str, type_specified);
 			read(ptr, linee, readsize);
 			close(ptr);
 		}
 	}
+	struct timeval t1, dt;
+    gettimeofday(&t1, NULL);
+    timersub(&t1, &t0, &dt);
+    double throughput = (double)num_subthreads / (dt.tv_sec);
+    fprintf(stdout, "%lf", throughput);
+
+	return 0;
 }
 
 void *read_function(void *placeholder) {
 
+	struct timeval t1, dt;
+	gettimeofday(&t1, NULL);
+	timersub(&t1, &t0, &dt);
+	fprintf(stdout, "%ld.%06ld\n", dt.tv_sec, dt.tv_usec);
+
 	int* rnumbers = malloc(sizeof(int)*MM);
 	int* snumbers = malloc(sizeof(int)*MM);
-	srandom(47);
 
 	for (int i = 0; i < MM; i++) {
 		double r = (((double) rand()) / ((double)RAND_MAX));
@@ -125,10 +171,17 @@ void *read_function(void *placeholder) {
 		int index = snumbers[i];
 		char str[20];
 		sprintf(str, "junkfile%d", index);
-		ptr = open(str, O_RDONLY);
+		ptr = open(str, type_specified);
 		read(ptr, linee, readsize);
 		close(ptr);
 	}
-
+	
 	return 0;
 }
+
+void print_usage(void) {
+    fprintf(stderr, 
+            "ERROR use: task2 [-p caching type] 1 O_RDONLY 2 O_SYNC 3 O_DIRECT\n");
+    exit(1);
+}
+
